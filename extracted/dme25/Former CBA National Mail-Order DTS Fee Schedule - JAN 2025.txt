@@ -1,0 +1,22 @@
+"Durable Medical Equipment,"						
+"Prosthetics, Orthotics, and Supplies"						
+(DMEPOS)						
+January 2025 Former CBA National Mail Order Diabetic Testing Supply Fee Schedule (National Mail-Order CBA)						
+						
+HCPCS	Mod	Mod2	Mod3	CATG	National Mail-Order	Description
+A4233	NU	KL		IN	0.65	Alkalin batt for glucose mon
+A4234	NU	KL		IN	2.94	J-cell batt for glucose mon
+A4235	NU	KL		IN	1.25	Lithium batt for glucose mon
+A4236	NU	KL		IN	1.44	Silvr oxide batt glucose mon
+A4253	NU	KL		IN	10.39	Blood glucose/reagent strips
+A4256	KL			SU	4.23	Calibrator solution/chips
+A4258	KL			SU	2.64	Lancet device each
+A4259	KL			SU	1.78	Lancets per box
+						
+						
+						
+						
+						
+Note:  the above National mail order fee schedule amounts (KL modifier) are for payment of mail order diabetic testing						
+"supplies in all parts of the United States, including the 50 states, the District of Columbia, Puerto Rico, the U.S. Virgin Islands,"						
+Guam and the American Samoa.  Non-mail order fee schedule amounts for diabetic supplies (non-KL) are available on the DMEPOS fee schedule file. 						
