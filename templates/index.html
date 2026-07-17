@@ -7,7 +7,7 @@
     <!-- Tailwind Engine Framework CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- Google Fonts Workspace Setup -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
@@ -26,8 +26,8 @@
             </div>
         </div>
         
-        <!-- Selection Filtering Controls Container Matrix -->
-        <div class="flex items-center gap-3">
+        <!-- Selection Filtering Controls Container Matrix (Controlled via Fee Pipeline Context View Only) -->
+        <div id="feePipelineControls" class="flex items-center gap-3">
             <div class="flex flex-col">
                 <select id="yearSelect" class="bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-4 py-2 text-sm font-semibold shadow-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all cursor-pointer">
                     <option value="2024">Year: 2024</option>
@@ -51,61 +51,165 @@
         </div>
     </nav>
 
+    <!-- Sub-Navigation App Tab Switcher Matrix -->
+    <div class="max-w-7xl mx-auto px-6 md:px-8 mt-6">
+        <div class="flex border-b border-slate-200 gap-6">
+            <button id="tabFeeBtn" onclick="switchViewTab('fee')" class="pb-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 transition-all cursor-pointer">
+                Fee Ingestion Pipeline
+            </button>
+            <button id="tabZipBtn" onclick="switchViewTab('zip')" class="pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-all cursor-pointer">
+                Zip Code Processor
+            </button>
+        </div>
+    </div>
+
     <!-- Core Central Dashboard Layout System -->
     <main class="max-w-7xl mx-auto p-6 md:p-8 space-y-8">
         
         <!-- Live Global Notification Stream Canvas -->
         <div id="statusAlert" class="hidden transform transition-all duration-300 rounded-2xl border p-5 shadow-xs"></div>
 
-        <!-- Master Records Management Platform Grid Workspace Section -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-            <div class="p-6 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4 bg-slate-50/40">
-                <div>
-                    <h3 class="font-bold text-slate-900 text-base tracking-tight">Resultant Target Output Table View</h3>
-                    <p class="text-xs text-slate-400 mt-1 font-medium">Dynamically sorting live production datasets securely committed via MySQL system storage schema</p>
+        <!-- ===================================================================== -->
+        <!-- VIEW BLOCK A: CORE DME PIPELINE LAYOUT PLATFORM ---------------------- -->
+        <!-- ===================================================================== -->
+        <div id="viewFeePipeline" class="space-y-8 block">
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4 bg-slate-50/40">
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-base tracking-tight">Resultant Target Output Table View</h3>
+                        <p class="text-xs text-slate-400 mt-1 font-medium">Dynamically sorting live production datasets securely committed via MySQL system storage schema</p>
+                    </div>
+                    
+                    <div class="relative w-full max-w-xs">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-sm">🔍</span>
+                        <input id="gridSearchInput" type="text" onkeyup="filterResultantGrid('recordsTableBody', 'gridSearchInput')" placeholder="Filter current records grid..." class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm font-medium shadow-2xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all">
+                    </div>
                 </div>
-                
-                <!-- Advanced Search Capabilities System Bar -->
-                <div class="relative w-full max-w-xs">
-                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-sm">🔍</span>
-                    <input id="gridSearchInput" type="text" onkeyup="filterResultantGrid()" placeholder="Filter current records grid..." class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm font-medium shadow-2xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all">
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200/60 text-slate-400 text-xs font-bold uppercase tracking-wider select-none">
+                                <th class="py-4 px-6">Procedure Code</th>
+                                <th class="py-4 px-6">Target State</th>
+                                <th class="py-4 px-6">Pricing Timeline</th>
+                                <th class="py-4 px-6">Allowance Rate</th>
+                                <th class="py-4 px-6">Originating Dataset Asset File</th>
+                            </tr>
+                        </table>
+                        <tbody id="recordsTableBody" class="divide-y divide-slate-100 text-sm font-medium text-slate-600">
+                            <tr>
+                                <td colspan="5" class="py-12 text-center text-slate-400 font-normal">
+                                    <div class="text-3xl mb-2">📁</div>
+                                    System offline. Choose criteria and click <strong class="text-slate-700">"Proceed & Ingest"</strong> above.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
+        </div>
 
-            <!-- Scrollable Dynamic Grid Table Data Container Frame -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50 border-b border-slate-200/60 text-slate-400 text-xs font-bold uppercase tracking-wider select-none">
-                            <th class="py-4 px-6">Procedure Code</th>
-                            <th class="py-4 px-6">Target State</th>
-                            <th class="py-4 px-6">Pricing Timeline</th>
-                            <th class="py-4 px-6">Allowance Rate</th>
-                            <th class="py-4 px-6">Originating Dataset Asset File</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recordsTableBody" class="divide-y divide-slate-100 text-sm font-medium text-slate-600">
-                        <tr>
-                            <td colspan="5" class="py-12 text-center text-slate-400 font-normal">
-                                <div class="text-3xl mb-2">📁</div>
-                                System offline. Choose criteria and click <strong class="text-slate-700">"Proceed & Ingest"</strong> above.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+        <!-- ===================================================================== -->
+        <!-- VIEW BLOCK B: NEW ZIP CODE PIPELINE LAYOUT PLATFORM ------------------ -->
+        <!-- ===================================================================== -->
+        <div id="viewZipProcessor" class="space-y-8 hidden">
+            <!-- URL Excel Ingestion Control Workspace Canvas -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-4">
+                <div class="space-y-1 flex-1 min-w-[300px]">
+                    <h4 class="font-bold text-slate-900 text-sm tracking-tight">External Data Asset Ingestion Stream</h4>
+                    <p class="text-xs text-slate-400 font-medium">Provide the remote network endpoint URL pointing to the live target Excel spreadsheet architecture matrix.</p>
+                    <input id="zipExcelUrlInput" type="text" placeholder="https://example.gov/medicare/zipcode-records.xlsx" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium shadow-2xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all mt-2">
+                </div>
+                <button id="runZipPipelineBtn" onclick="triggerZipSpreadsheetImport()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl font-semibold tracking-wide shadow-sm hover:shadow-md active:scale-[0.98] transition-all text-sm cursor-pointer self-end h-[44px]">
+                    Fetch & Load Data
+                </button>
+            </div>
+
+            <!-- Zip Output Table View Dashboard Structure -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4 bg-slate-50/40">
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-base tracking-tight">Zip Code Cross Reference Registry View</h3>
+                        <p class="text-xs text-slate-400 mt-1 font-medium">Displaying dynamic structural records mapped cleanly across carrier jurisdictions</p>
+                    </div>
+                    
+                    <div class="relative w-full max-w-xs">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-sm">🔍</span>
+                        <input id="zipGridSearchInput" type="text" onkeyup="filterResultantGrid('zipRecordsTableBody', 'zipGridSearchInput')" placeholder="Filter current zips grid..." class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm font-medium shadow-2xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200/60 text-slate-400 text-xs font-bold uppercase tracking-wider select-none">
+                                <th class="py-4 px-6">Zip Fee Year</th>
+                                <th class="py-4 px-6">Zip Code</th>
+                                <th class="py-4 px-6">MDCR Carrier ID</th>
+                                <th class="py-4 px-6">MDCR Fee Schd ID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="zipRecordsTableBody" class="divide-y divide-slate-100 text-sm font-medium text-slate-600">
+                            <tr>
+                                <td colspan="4" class="py-12 text-center text-slate-400 font-normal">
+                                    <div class="text-3xl mb-2">🌐</div>
+                                    Database framework unpopulated. Paste remote spreadsheet path URL matrix asset above to parse records.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
 
     <!-- JavaScript Automation Logic Component Architecture Engine -->
     <script>
+        // --- MULTI-TAB SWITCHING WORKFLOW ENGINE MANAGER ---
+        function switchViewTab(activeMode) {
+            const tabFeeBtn = document.getElementById("tabFeeBtn");
+            const tabZipBtn = document.getElementById("tabZipBtn");
+            const viewFeePipeline = document.getElementById("viewFeePipeline");
+            const viewZipProcessor = document.getElementById("viewZipProcessor");
+            const feePipelineControls = document.getElementById("feePipelineControls");
+            const alertBox = document.getElementById("statusAlert");
+
+            // Reset dynamic message container state between layout transitions
+            alertBox.className = "hidden";
+            alertBox.innerHTML = "";
+
+            if (activeMode === 'fee') {
+                // Highlight Tab Engine Elements
+                tabFeeBtn.className = "pb-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 transition-all cursor-pointer";
+                tabZipBtn.className = "pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-all cursor-pointer";
+                
+                // Toggle Container Visibility Interfaces
+                viewFeePipeline.className = "space-y-8 block";
+                viewZipProcessor.className = "space-y-8 hidden";
+                feePipelineControls.className = "flex items-center gap-3 block";
+            } else {
+                // Highlight Tab Engine Elements
+                tabZipBtn.className = "pb-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 transition-all cursor-pointer";
+                tabFeeBtn.className = "pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-all cursor-pointer";
+                
+                // Toggle Container Visibility Interfaces
+                viewZipProcessor.className = "space-y-8 block";
+                viewFeePipeline.className = "space-y-8 hidden";
+                feePipelineControls.className = "hidden";
+
+                // Automatically render database elements if values exist on view mounting
+                renderZipOutputGrid();
+            }
+        }
+
+        // --- ORIGINAL DME PIPELINE PROCESSING FUNCTIONS (UNTOUCHED CORE) ---
         async function triggerCachedPipelineRun() {
             const btn = document.getElementById("runPipelineBtn");
             const alertBox = document.getElementById("statusAlert");
             const targetYear = document.getElementById("yearSelect").value;
             const targetQuarter = document.getElementById("quarterSelect").value;
 
-            // Shift execution toggle modes into state loading animations
             btn.disabled = true;
             btn.innerHTML = `<span class="animate-pulse">Processing Local Cache...</span>`;
             
@@ -166,14 +270,89 @@
             }
         }
 
-        function filterResultantGrid() {
-            const filterValue = document.getElementById("gridSearchInput").value.toUpperCase();
-            const rows = document.getElementById("recordsTableBody").getElementsByTagName("tr");
+        // --- NEW ZIP CODES REMOTE EXCEL INGESTION & GRID PROCESSING CORE ---
+        async function triggerZipSpreadsheetImport() {
+            const btn = document.getElementById("runZipPipelineBtn");
+            const alertBox = document.getElementById("statusAlert");
+            const urlValue = document.getElementById("zipExcelUrlInput").value.trim();
+
+            if (!urlValue) {
+                alertBox.className = "p-5 rounded-2xl border text-sm font-medium bg-rose-50 border-rose-200 text-rose-800 block shadow-xs";
+                alertBox.innerHTML = "⚠️ <strong>Input Required:</strong> Please enter a valid Excel source asset path engine URL.";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="animate-pulse">Parsing Excel Pipeline...</span>`;
+            
+            alertBox.className = "p-5 rounded-2xl border text-sm font-medium bg-blue-50/80 border-blue-200/60 text-blue-800 block animate-pulse";
+            alertBox.innerHTML = `✨ <strong>Downloading Network Resources:</strong> Contacting remote data servers to extract, format, and parse Excel configuration arrays...`;
+
+            try {
+                const response = await fetch('/api/zip-codes/import', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: urlValue })
+                });
+
+                const responseJson = await response.json();
+
+                if (response.ok) {
+                    alertBox.className = "p-5 rounded-2xl border text-sm font-medium bg-emerald-50 border-emerald-200 text-emerald-800 block shadow-xs transition-all";
+                    alertBox.innerHTML = `🚀 <strong>Zip Processing Finalized:</strong> Successfully ingested and mapped <strong>${responseJson.inserted_rows} structured zip entries</strong> natively into MySQL Workbench storage arrays.`;
+                    await renderZipOutputGrid();
+                } else {
+                    alertBox.className = "p-5 rounded-2xl border text-sm font-medium bg-rose-50 border-rose-200 text-rose-800 block shadow-xs";
+                    alertBox.innerHTML = `⚠️ <strong>Import Exception Halt:</strong> ${responseJson.message}`;
+                }
+            } catch (err) {
+                alertBox.className = "p-5 rounded-2xl border text-sm font-medium bg-rose-50 border-rose-200 text-rose-800 block shadow-xs";
+                alertBox.innerHTML = "❌ <strong>Network Interruption:</strong> Failed to interact with backend routing channels.";
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span>Fetch & Load Data</span>`;
+            }
+        }
+
+        async function renderZipOutputGrid() {
+            const tableBody = document.getElementById("zipRecordsTableBody");
+            try {
+                const fetchRes = await fetch('/api/zip-codes/records');
+                const result = await fetchRes.json();
+
+                if (result.status === "success" && result.data.length > 0) {
+                    tableBody.innerHTML = "";
+                    result.data.forEach(row => {
+                        const trElement = document.createElement("tr");
+                        trElement.className = "hover:bg-slate-50/80 transition-all duration-150 border-b border-slate-100/60";
+                        trElement.innerHTML = `
+                            <td class="py-4 px-6 text-slate-900 font-bold">${row.zip_fee_year}</td>
+                            <td class="py-4 px-6 text-slate-600 font-semibold font-mono">${row.zip_code}</td>
+                            <td class="py-4 px-6 text-slate-500 font-medium">${row.mdcr_carrier_id}</td>
+                            <td class="py-4 px-6 text-blue-600 font-bold font-mono">${row.mdcr_fee_schd_id}</td>
+                        `;
+                        tableBody.appendChild(trElement);
+                    });
+                } else {
+                    tableBody.innerHTML = `<tr><td colspan="4" class="py-12 text-center text-slate-400 font-normal">The dataset context zip code grid view is currently empty.</td></tr>`;
+                }
+            } catch (error) {
+                console.error("Failed to fetch dashboard data collections context grid rows for zip codes:", error);
+            }
+        }
+
+        // --- GLOBAL GRID SELECTION LOOKUP SEARCH ENGINE ---
+        function filterResultantGrid(tableBodyId, inputSearchId) {
+            const filterValue = document.getElementById(inputSearchId).value.toUpperCase();
+            const rows = document.getElementById(tableBodyId).getElementsByTagName("tr");
             
             for (let i = 0; i < rows.length; i++) {
                 let cellMatch = false;
                 const cells = rows[i].getElementsByTagName("td");
                 
+                // Skip filtering operations if it is the empty dataset indicator text row fallback
+                if (cells.length === 1) continue;
+
                 for (let j = 0; j < cells.length; j++) {
                     if (cells[j] && cells[j].innerText.toUpperCase().indexOf(filterValue) > -1) {
                         cellMatch = true;

@@ -31,6 +31,10 @@ os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 os.makedirs(EXTRACT_DIR, exist_ok=True)
 
 
+# =====================================================================
+# --- CORE DME WORKFLOW ROUTES (ORIGINAL CODE - DO NOT MODIFY) --------
+# =====================================================================
+
 @app.route('/', methods=['GET'])
 def render_dashboard():
     """Serves the central administrative UI dashboard application."""
@@ -178,6 +182,126 @@ def fetch_grid_data():
         if 'conn' in locals() and conn.open:
             conn.close()
 
+
+# =====================================================================
+# --- NEW ZIP CODES EXTENSION (FIXED TO DECODE BOTH ZIP & EXCEL) ------
+# =====================================================================
+
+@app.route('/api/zip-codes/import', methods=['POST'])
+def import_zip_codes():
+    """Downloads an Excel sheet (or ZIP containing one) from a URL, maps zip code structures, and updates the database."""
+    import io
+    import zipfile
+    import pandas as pd
+    import requests
+
+    payload = request.json or {}
+    url = payload.get('url', '').strip()
+    
+    if not url:
+        return jsonify({"status": "error", "message": "Parameters 'url' is required."}), 400
+
+    try:
+        # 1. Download the target remote asset safely
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        logging.info(f"Downloading external Zip Code dataset from target URL: {url}")
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
+        
+        excel_file_data = None
+
+        # 2. Check if resource payload is a Compressed Zip File Archive
+        if url.lower().endswith('.zip') or zipfile.is_zipfile(io.BytesIO(response.content)):
+            with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+                # Isolate target spreadsheet structures wrapped inside the archive stream
+                excel_files = [f for f in z.namelist() if f.lower().endswith(('.xlsx', '.xls'))]
+                if not excel_files:
+                    return jsonify({
+                        "status": "error", 
+                        "message": "Archive extraction abort: No valid spreadsheet (.xlsx/.xls) located inside ZIP package."
+                    }), 400
+                excel_file_data = z.read(excel_files[0])
+        else:
+            # It's an uncompressed standard Excel document stream
+            excel_file_data = response.content
+
+        # 3. Parse the isolated document binary stream cleanly via pandas
+        df = pd.read_excel(io.BytesIO(excel_file_data))
+        
+        # Trim white spaces from column headings safely
+        df.columns = df.columns.str.strip()
+        
+        # 4. Match and validate the exact Excel headers provided from the screen layout matrix
+        required_cols = ['YEAR/QTR', 'ZIP CODE', 'CARRIER', 'LOCALITY']
+        missing_cols = [col for col in required_cols if col not in df.columns]
+        if missing_cols:
+            return jsonify({
+                "status": "error", 
+                "message": f"Excel structural mismatch. Missing required header mappings: {missing_cols}"
+            }), 400
+
+        # 5. Filter down and map to our database target matrix layout
+        df_mapped = df[required_cols].rename(columns={
+            'YEAR/QTR': 'zip_fee_year',
+            'ZIP CODE': 'zip_code',
+            'CARRIER': 'mdcr_carrier_id',
+            'LOCALITY': 'mdcr_fee_schd_id'
+        })
+
+        # Cast column items to uniform string formats to protect code schema structure text layouts
+        df_mapped['zip_code'] = df_mapped['zip_code'].astype(str).str.strip()
+        df_mapped['mdcr_carrier_id'] = df_mapped['mdcr_carrier_id'].astype(str).str.strip()
+        df_mapped['mdcr_fee_schd_id'] = df_mapped['mdcr_fee_schd_id'].astype(str).str.strip()
+
+        # Build data tracking array elements
+        parsed_records = list(df_mapped.itertuples(index=False, name=None))
+
+        # 6. Database Commit Execution using native project configuration engine variables
+        conn = pymysql.connect(**DB_CONFIG)
+        with conn.cursor() as cursor:
+            # Drop older records to mirror standard fee schedule refresh mechanics safely
+            cursor.execute("TRUNCATE TABLE dme_zip_fee_flow;")
+            
+            sql = """
+                INSERT INTO dme_zip_fee_flow (zip_fee_year, zip_code, mdcr_carrier_id, mdcr_fee_schd_id)
+                VALUES (%s, %s, %s, %s)
+            """
+            cursor.executemany(sql, parsed_records)
+            conn.commit()
+            record_count = len(parsed_records)
+
+        return jsonify({"status": "success", "inserted_rows": record_count}), 200
+
+    except pymysql.MySQLError as db_err:
+        logging.error(f"Zip database operational failure details: {db_err}")
+        return jsonify({"status": "error", "message": f"Database transactional exception: {str(db_err)}"}), 500
+    except Exception as e:
+        logging.error(f"Zip importation process exception encountered: {e}")
+        return jsonify({"status": "error", "message": f"Ingestion Engine Exception: {str(e)}"}), 500
+    finally:
+        if 'conn' in locals() and conn.open:
+            conn.close()
+
+
+@app.route('/api/zip-codes/records', methods=['GET'])
+def fetch_zip_grid_data():
+    """Retrieves target dataset outputs to populate the live dashboard grid view layout for Zip Codes."""
+    try:
+        conn = pymysql.connect(**DB_CONFIG)
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id, zip_fee_year, zip_code, mdcr_carrier_id, mdcr_fee_schd_id FROM dme_zip_fee_flow;")
+            dataset = cursor.fetchall()
+        return jsonify({"status": "success", "data": dataset}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+    finally:
+        if 'conn' in locals() and conn.open:
+            conn.close()
+
+
+# =====================================================================
+# --- RUN APP ENGINE --------------------------------------------------
+# =====================================================================
 
 if __name__ == '__main__':
     logging.info("Initializing DME Fee Flow Platform Engine Core...")
