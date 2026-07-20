@@ -19,6 +19,423 @@
 <img width="955" height="471" alt="image" src="https://github.com/user-attachments/assets/0237eb43-7ae3-4919-8f5a-f0793d966ac6" />
 
 
+# index.html:
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DME Fee Flow - Advanced Optimization Engine</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-800 min-h-screen antialiased">
+
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-8 py-4 flex flex-wrap justify-between items-center gap-4">
+        <div class="flex items-center space-x-3.5">
+            <div class="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-500/20 text-lg">D</div>
+            <div>
+                <h1 class="text-base font-bold text-slate-900 tracking-tight leading-none">DME Fee Flow</h1>
+                <span class="text-[11px] font-semibold tracking-wider uppercase text-slate-400 mt-1 block">Enterprise Control Hub</span>
+            </div>
+        </div>
+        
+        <div id="feePipelineControls" class="flex items-center gap-3">
+            <select id="yearSelect" class="bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-4 py-2 text-sm font-semibold shadow-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all cursor-pointer">
+                <option value="2024">Year: 2024</option>
+                <option value="2025" selected>Year: 2025</option>
+                <option value="2026">Year: 2026</option>
+            </select>
+            <select id="quarterSelect" class="bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-4 py-2 text-sm font-semibold shadow-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all cursor-pointer">
+                <option value="JAN">Q1 - January Patch</option>
+                <option value="APR">Q2 - April Patch</option>
+                <option value="JUL">Q3 - July Patch</option>
+                <option value="OCT">Q4 - October Patch</option>
+            </select>
+            <button id="runPipelineBtn" onclick="triggerCachedPipelineRun()" class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-xl font-semibold tracking-wide shadow-sm hover:shadow-md active:scale-[0.98] transition-all text-sm cursor-pointer">
+                Proceed & Ingest
+            </button>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-6 md:px-8 mt-6">
+        <div class="flex border-b border-slate-200 gap-6">
+            <button id="tabFeeBtn" onclick="switchViewTab('fee')" class="pb-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 transition-all cursor-pointer">Fee Ingestion Pipeline</button>
+            <button id="tabZipBtn" onclick="switchViewTab('zip')" class="pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-all cursor-pointer">Zip Code Processor</button>
+            <button id="tabAnesthesiaBtn" onclick="switchViewTab('anesthesia')" class="pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-all cursor-pointer">Anesthesia Processor</button>
+            <button id="tabClfsBtn" onclick="switchViewTab('clfs')" class="pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-all cursor-pointer">CLFS Pipeline</button>
+            <button id="tabPfsBtn" onclick="switchViewTab('pfs')" class="pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-all cursor-pointer">PFS Pipeline</button>
+        </div>
+    </div>
+
+    <main class="max-w-7xl mx-auto p-6 md:p-8 space-y-8">
+        <div id="statusAlert" class="hidden transform transition-all duration-300 rounded-2xl border p-5 shadow-xs"></div>
+
+        <!-- VIEW BLOCK A: FEE PIPELINE -->
+        <div id="viewFeePipeline" class="space-y-8 block">
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4 bg-slate-50/40">
+                    <div>
+                        <h3 class="font-bold text-slate-900 text-base tracking-tight">Resultant Target Output Table View</h3>
+                        <p class="text-xs text-slate-400 mt-1 font-medium">Dynamically sorting live production datasets securely committed via MySQL system storage schema</p>
+                    </div>
+                    <div class="relative w-full max-w-xs">
+                        <input id="gridSearchInput" type="text" onkeyup="filterResultantGrid('recordsTableBody', 'gridSearchInput')" placeholder="Filter current records grid..." class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm font-medium shadow-2xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all">
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50 border-b border-slate-200/60 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="py-4 px-6">Procedure Code</th>
+                                <th class="py-4 px-6">Target State</th>
+                                <th class="py-4 px-6">Pricing Timeline</th>
+                                <th class="py-4 px-6">Allowance Rate</th>
+                                <th class="py-4 px-6">Originating Dataset Asset File</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsTableBody" class="divide-y divide-slate-100 text-sm font-medium text-slate-600">
+                            <tr>
+                                <td colspan="5" class="py-12 text-center text-slate-400 font-normal">
+                                    <div class="text-3xl mb-2">📁</div>
+                                    System offline. Choose criteria and click <strong class="text-slate-700">"Proceed & Ingest"</strong> above.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW BLOCK B: ZIP PROCESSOR -->
+        <div id="viewZipProcessor" class="space-y-8 hidden">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-4">
+                <div class="space-y-1 flex-1 min-w-[300px]">
+                    <h4 class="font-bold text-slate-900 text-sm tracking-tight">External Data Asset Ingestion Stream</h4>
+                    <input id="zipExcelUrlInput" type="text" placeholder="https://example.gov/medicare/zipcode-records.xlsx" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium shadow-2xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all mt-2">
+                </div>
+                <button id="runZipPipelineBtn" onclick="triggerZipSpreadsheetImport()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl font-semibold tracking-wide shadow-sm hover:shadow-md active:scale-[0.98] transition-all text-sm cursor-pointer self-end h-[44px]">Fetch & Load Data</button>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                <div class="p-6 border-b border-slate-100 bg-slate-50/40">
+                    <h3 class="font-bold text-slate-900 text-base tracking-tight">Zip Code Cross Reference Registry View</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50 border-b border-slate-200/60 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="py-4 px-6">Zip Fee Year</th>
+                                <th class="py-4 px-6">Zip Code</th>
+                                <th class="py-4 px-6">MDCR Carrier ID</th>
+                                <th class="py-4 px-6">MDCR Fee Schd ID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="zipRecordsTableBody" class="divide-y divide-slate-100 text-sm font-medium text-slate-600">
+                            <tr>
+                                <td colspan="4" class="py-12 text-center text-slate-400 font-normal">
+                                    <div class="text-3xl mb-2">🌐</div>
+                                    Database framework unpopulated. Paste remote spreadsheet path URL matrix asset above to parse records.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW BLOCK C: ANESTHESIA PROCESSOR -->
+        <div id="viewAnesthesiaProcessor" class="space-y-8 hidden">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-4">
+                <div class="space-y-1 flex-1 min-w-[300px]">
+                    <h4 class="font-bold text-slate-900 text-sm tracking-tight">Anesthesia Asset Ingestion</h4>
+                    <input id="anesthesiaUrlInput" type="text" placeholder="https://example.gov/anesthesia-records.xlsx" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium shadow-2xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all mt-2">
+                </div>
+                <button id="runAnesthesiaBtn" onclick="triggerAnesthesiaImport()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl font-semibold tracking-wide shadow-sm hover:shadow-md active:scale-[0.98] transition-all text-sm cursor-pointer self-end h-[44px]">Import Anesthesia</button>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                <div class="p-6 border-b border-slate-100 bg-slate-50/40">
+                    <h3 class="font-bold text-slate-900 text-base tracking-tight">Anesthesia Registry Table View</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50 border-b border-slate-200/60 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                            <tr>
+                                <th class="py-4 px-6">Year</th>
+                                <th class="py-4 px-6">Carrier ID</th>
+                                <th class="py-4 px-6">Fee Schd ID</th>
+                                <th class="py-4 px-6">Conv Factor Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="anesthesiaRecordsTableBody" class="divide-y divide-slate-100 text-sm font-medium text-slate-600">
+                            <tr>
+                                <td colspan="4" class="py-12 text-center text-slate-400 font-normal">
+                                    <div class="text-3xl mb-2">💉</div>
+                                    Awaiting anesthesia dataset processing.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PLACEHOLDER VIEWS -->
+        <div id="viewClfsPipeline" class="space-y-8 hidden">
+             <div class="p-8 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">CLFS Pipeline configuration pending.</div>
+        </div>
+        <div id="viewPfsPipeline" class="space-y-8 hidden">
+             <div class="p-8 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">PFS Pipeline configuration pending.</div>
+        </div>
+    </main>
+
+    <script>
+        function switchViewTab(activeMode) {
+            const tabs = {
+                fee: { btn: "tabFeeBtn", view: "viewFeePipeline" },
+                zip: { btn: "tabZipBtn", view: "viewZipProcessor" },
+                anesthesia: { btn: "tabAnesthesiaBtn", view: "viewAnesthesiaProcessor" },
+                clfs: { btn: "tabClfsBtn", view: "viewClfsPipeline" },
+                pfs: { btn: "tabPfsBtn", view: "viewPfsPipeline" }
+            };
+
+            const feePipelineControls = document.getElementById("feePipelineControls");
+            const alertBox = document.getElementById("statusAlert");
+
+            alertBox.className = "hidden";
+            alertBox.innerHTML = "";
+
+            // Reset all tabs and hide all views
+            Object.keys(tabs).forEach(key => {
+                document.getElementById(tabs[key].btn).className = "pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-all cursor-pointer";
+                document.getElementById(tabs[key].view).className = "space-y-8 hidden";
+            });
+
+            // Set Active
+            document.getElementById(tabs[activeMode].btn).className = "pb-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 transition-all cursor-pointer";
+            document.getElementById(tabs[activeMode].view).className = "space-y-8 block";
+
+            // Control Visibility
+            feePipelineControls.className = (activeMode === 'fee') ? "flex items-center gap-3" : "hidden";
+
+            // Data Loading
+            if (activeMode === 'zip') renderZipOutputGrid();
+            if (activeMode === 'anesthesia') renderAnesthesiaOutputGrid();
+        }
+
+        async function triggerCachedPipelineRun() {
+            const btn = document.getElementById("runPipelineBtn");
+            const alertBox = document.getElementById("statusAlert");
+            const targetYear = document.getElementById("yearSelect").value;
+            const targetQuarter = document.getElementById("quarterSelect").value;
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="animate-pulse">Processing...</span>`;
+            
+            alertBox.className = "p-5 rounded-2xl border text-sm font-medium bg-blue-50/80 border-blue-200/60 text-blue-800 block animate-pulse";
+            alertBox.innerHTML = `✨ Executing Operations...`;
+
+            try {
+                const response = await fetch('/api/pipeline/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ year: targetYear, quarter: targetQuarter })
+                });
+                
+                const responseJson = await response.json();
+                
+                if (response.ok) {
+                    alertBox.className = "p-5 rounded-2xl border text-sm font-medium bg-emerald-50 border-emerald-200 text-emerald-800 block shadow-xs";
+                    alertBox.innerHTML = `🚀 Finalized: Ingested ${responseJson.inserted_rows} records.`;
+                    await renderOutputGrid();
+                } else {
+                    alertBox.className = "p-5 rounded-2xl border text-sm font-medium bg-rose-50 border-rose-200 text-rose-800 block shadow-xs";
+                    alertBox.innerHTML = `⚠️ Error: ${responseJson.message}`;
+                }
+            } catch (err) {
+                alertBox.className = "p-5 rounded-2xl border text-sm font-medium bg-rose-50 border-rose-200 text-rose-800 block shadow-xs";
+                alertBox.innerHTML = "❌ Network Interruption.";
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span>Proceed & Ingest</span>`;
+            }
+        }
+
+        async function renderOutputGrid() {
+            const tableBody = document.getElementById("recordsTableBody");
+            try {
+                const fetchRes = await fetch('/api/pipeline/records');
+                const result = await fetchRes.json();
+                
+                if (result.status === "success" && result.data && result.data.length > 0) {
+                    tableBody.innerHTML = "";
+                    result.data.forEach(row => {
+                        const tr = document.createElement("tr");
+                        tr.className = "hover:bg-slate-50/80 transition-all border-b border-slate-100/60";
+                        tr.innerHTML = `
+                            <td class="py-4 px-6 font-bold text-slate-900">${row.procedure_cd}</td>
+                            <td class="py-4 px-6 text-slate-500 font-mono text-xs"><span class="bg-slate-100 text-slate-600 px-2 py-1 rounded-md">${row.state_cd}</span></td>
+                            <td class="py-4 px-6 text-slate-600 font-medium">${row.pricing_year}</td>
+                            <td class="py-4 px-6 text-blue-600 font-bold">$${parseFloat(row.allowance_amt).toFixed(2)}</td>
+                            <td class="py-4 px-6 text-xs text-slate-400 font-mono">${row.filename}</td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                }
+            } catch (error) {
+                console.error("Dashboard error:", error);
+            }
+        }
+
+        async function triggerZipSpreadsheetImport() {
+            const btn = document.getElementById("runZipPipelineBtn");
+            const alertBox = document.getElementById("statusAlert");
+            const urlValue = document.getElementById("zipExcelUrlInput").value.trim();
+
+            if (!urlValue) {
+                alertBox.className = "p-5 rounded-2xl border text-sm font-medium bg-rose-50 border-rose-200 text-rose-800 block shadow-xs";
+                alertBox.innerHTML = "⚠️ Input Required: Please enter a valid Excel source asset path.";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="animate-pulse">Parsing...</span>`;
+            
+            try {
+                const response = await fetch('/api/zip-codes/import', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: urlValue })
+                });
+
+                const responseJson = await response.json();
+
+                if (response.ok) {
+                    alertBox.className = "p-5 rounded-2xl border text-sm font-medium bg-emerald-50 border-emerald-200 text-emerald-800 block shadow-xs";
+                    alertBox.innerHTML = `🚀 Finalized: Ingested ${responseJson.inserted_rows} zip entries.`;
+                    await renderZipOutputGrid();
+                } else {
+                    alertBox.className = "p-5 rounded-2xl border text-sm font-medium bg-rose-50 border-rose-200 text-rose-800 block shadow-xs";
+                    alertBox.innerHTML = `⚠️ Import Exception: ${responseJson.message}`;
+                }
+            } catch (err) {
+                alertBox.className = "p-5 rounded-2xl border text-sm font-medium bg-rose-50 border-rose-200 text-rose-800 block shadow-xs";
+                alertBox.innerHTML = "❌ Network Interruption.";
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span>Fetch & Load Data</span>`;
+            }
+        }
+
+        async function renderZipOutputGrid() {
+            const tableBody = document.getElementById("zipRecordsTableBody");
+            try {
+                const fetchRes = await fetch('/api/zip-codes/records');
+                const result = await fetchRes.json();
+                if (result.status === "success" && result.data && result.data.length > 0) {
+                    tableBody.innerHTML = "";
+                    result.data.forEach(row => {
+                        const tr = document.createElement("tr");
+                        tr.className = "hover:bg-slate-50/80 transition-all border-b border-slate-100/60";
+                        tr.innerHTML = `
+                            <td class="py-4 px-6 text-slate-900 font-bold">${row.zip_fee_year}</td>
+                            <td class="py-4 px-6 text-slate-600 font-semibold font-mono">${row.zip_code}</td>
+                            <td class="py-4 px-6 text-slate-500 font-medium">${row.mdcr_carrier_id}</td>
+                            <td class="py-4 px-6 text-blue-600 font-bold font-mono">${row.mdcr_fee_schd_id}</td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                }
+            } catch (error) {
+                console.error("Zip grid error:", error);
+            }
+        }
+
+        function filterResultantGrid(tableBodyId, inputSearchId) {
+            const filter = document.getElementById(inputSearchId).value.toUpperCase();
+            const rows = document.getElementById(tableBodyId).getElementsByTagName("tr");
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName("td");
+                if (cells.length === 1) continue;
+                let match = false;
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].innerText.toUpperCase().indexOf(filter) > -1) { match = true; break; }
+                }
+                rows[i].style.display = match ? "" : "none";
+            }
+        }
+
+        async function triggerAnesthesiaImport() {
+            const btn = document.getElementById("runAnesthesiaBtn");
+            const alertBox = document.getElementById("statusAlert");
+            const urlValue = document.getElementById("anesthesiaUrlInput").value.trim();
+
+            if (!urlValue) {
+                alertBox.className = "p-5 rounded-2xl border text-sm font-medium bg-rose-50 border-rose-200 text-rose-800 block shadow-xs";
+                alertBox.innerHTML = "⚠️ Input Required: Please enter a valid Anesthesia asset path.";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="animate-pulse">Importing...</span>`;
+            
+            try {
+                const response = await fetch('/api/anesthesia/import', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: urlValue })
+                });
+
+                const responseJson = await response.json();
+
+                if (response.ok) {
+                    alertBox.className = "p-5 rounded-2xl border text-sm font-medium bg-emerald-50 border-emerald-200 text-emerald-800 block shadow-xs";
+                    alertBox.innerHTML = `🚀 Finalized: Ingested ${responseJson.inserted_rows || 0} anesthesia records.`;
+                    await renderAnesthesiaOutputGrid();
+                } else {
+                    alertBox.className = "p-5 rounded-2xl border text-sm font-medium bg-rose-50 border-rose-200 text-rose-800 block shadow-xs";
+                    alertBox.innerHTML = `⚠️ Import Exception: ${responseJson.message}`;
+                }
+            } catch (err) {
+                alertBox.className = "p-5 rounded-2xl border text-sm font-medium bg-rose-50 border-rose-200 text-rose-800 block shadow-xs";
+                alertBox.innerHTML = "❌ Network Interruption.";
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span>Import Anesthesia</span>`;
+            }
+        }
+
+        async function renderAnesthesiaOutputGrid() {
+            const tableBody = document.getElementById("anesthesiaRecordsTableBody");
+            try {
+                const fetchRes = await fetch('/api/anesthesia/records');
+                const result = await fetchRes.json();
+                
+                if (result.status === "success" && result.data && result.data.length > 0) {
+                    tableBody.innerHTML = "";
+                    result.data.forEach(row => {
+                        const tr = document.createElement("tr");
+                        tr.className = "hover:bg-slate-50/80 transition-all border-b border-slate-100/60";
+                        tr.innerHTML = `
+                            <td class="py-4 px-6 text-slate-900 font-bold">${row.pricing_year}</td>
+                            <td class="py-4 px-6 text-slate-600 font-medium">${row.mdcr_carrier_id}</td>
+                            <td class="py-4 px-6 text-slate-500 font-medium">${row.mdcr_fee_schd_id}</td>
+                            <td class="py-4 px-6 text-indigo-600 font-bold font-mono">${parseFloat(row.conv_factor_amt).toFixed(4)}</td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                }
+            } catch (error) {
+                console.error("Anesthesia grid error:", error);
+            }
+        }
+    </script>
+</body>
+</html>
+```
 
 
 
