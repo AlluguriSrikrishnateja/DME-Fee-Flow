@@ -7,7 +7,61 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        /* Vibrant Animated Background */
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #1e293b;
+    /* This creates a slow, shifting gradient effect */
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+    background-attachment: fixed;
+}
+
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Glass card styling adjusted for high contrast */
+/* Update these styles in your <style> block */
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.95); /* Increased opacity for better readability */
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Ensure table rows have high contrast */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    color: #1e293b; /* Dark text for readability */
+}
+
+th {
+    background-color: #f1f5f9;
+    padding: 12px;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+td {
+    padding: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    background-color: white; /* Solid white background for rows */
+}
+
+/* Add a hover effect to help the user track rows */
+tr:hover td {
+    background-color: #f8fafc;
+}
     </style>
 </head>
 <body class="bg-[#F8FAFC] text-slate-800 min-h-screen antialiased">
@@ -22,29 +76,46 @@
         </div>
         
         <div id="feePipelineControls" class="flex items-center gap-3">
-            <select id="yearSelect" class="bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-4 py-2 text-sm font-semibold shadow-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all cursor-pointer">
+            <!-- Select boxes updated for a cleaner, more professional look -->
+            <select id="yearSelect" class="bg-white border border-slate-200 text-slate-700 rounded-xl px-4 py-2 text-sm font-semibold shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer">
                 <option value="2024">Year: 2024</option>
                 <option value="2025" selected>Year: 2025</option>
                 <option value="2026">Year: 2026</option>
             </select>
-            <select id="quarterSelect" class="bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-4 py-2 text-sm font-semibold shadow-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all cursor-pointer">
+    
+            <select id="quarterSelect" class="bg-white border border-slate-200 text-slate-700 rounded-xl px-4 py-2 text-sm font-semibold shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer">
                 <option value="JAN">Q1 - January Patch</option>
                 <option value="APR">Q2 - April Patch</option>
                 <option value="JUL">Q3 - July Patch</option>
                 <option value="OCT">Q4 - October Patch</option>
             </select>
-            <button id="runPipelineBtn" onclick="triggerCachedPipelineRun()" class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-xl font-semibold tracking-wide shadow-sm hover:shadow-md active:scale-[0.98] transition-all text-sm cursor-pointer">
+
+    <!-- FIXED: Changed background to emerald-600 to match the "Proceed/Success" action -->
+            <button id="runPipelineBtn" onclick="triggerCachedPipelineRun()" 
+                class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl font-semibold tracking-wide shadow-md shadow-emerald-600/20 active:scale-[0.98] transition-all text-sm cursor-pointer">
                 Proceed & Ingest
             </button>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto px-6 md:px-8 mt-6">
-        <div class="flex border-b border-slate-200 gap-6">
-            <button id="tabFeeBtn" onclick="switchViewTab('fee')" class="pb-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 transition-all cursor-pointer">Fee Ingestion Pipeline</button>
-            <button id="tabZipBtn" onclick="switchViewTab('zip')" class="pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-all cursor-pointer">Zip Code Processor</button>
-            <button id="tabAnesthesiaBtn" onclick="switchViewTab('anesthesia')" class="pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-all cursor-pointer">Anesthesia Processor</button>
-        </div>
+    <div class="flex p-1.5 bg-slate-900 rounded-2xl w-fit shadow-lg">
+        <!-- Fee Tab: Blue Theme -->
+        <button id="tabFeeBtn" onclick="switchViewTab('fee')" 
+            class="px-6 py-2.5 text-sm font-bold bg-blue-500 text-white rounded-xl shadow-md transition-all">
+            Fee Ingestion Pipeline
+        </button>
+    
+        <!-- Zip Tab: Amber/Orange Theme -->
+        <button id="tabZipBtn" onclick="switchViewTab('zip')" 
+            class="px-6 py-2.5 text-sm font-semibold text-slate-400 hover:text-white transition-all">
+            Zip Code Processor
+        </button>
+    
+        <!-- Anesthesia Tab: Purple Theme -->
+        <button id="tabAnesthesiaBtn" onclick="switchViewTab('anesthesia')" 
+            class="px-6 py-2.5 text-sm font-semibold text-slate-400 hover:text-white transition-all">
+            Anesthesia Processor
+        </button>
     </div>
 
     <main class="max-w-7xl mx-auto p-6 md:p-8 space-y-8">
@@ -53,10 +124,10 @@
         <!-- VIEW BLOCK A: FEE PIPELINE -->
         <div id="viewFeePipeline" class="space-y-8 block">
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-                <div class="p-6 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4 bg-slate-50/40">
+                <div class="p-6 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
                     <div>
-                        <h3 class="font-bold text-slate-900 text-base tracking-tight">Resultant Target Output Table View</h3>
-                        <p class="text-xs text-slate-400 mt-1 font-medium">Dynamically sorting live production datasets securely committed via MySQL system storage schema</p>
+                        <h3 class="text-lg font-bold text-slate-900">Resultant Target Output Table View</h3>
+                        <p class="text-xs text-slate-500 mt-1 font-medium">Dynamically sorting live production datasets securely committed via MySQL system storage schema</p>
                     </div>
                     <div class="relative w-full max-w-xs">
                         <input id="gridSearchInput" type="text" onkeyup="filterResultantGrid('recordsTableBody', 'gridSearchInput')" placeholder="Filter current records grid..." class="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm font-medium shadow-2xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all">
@@ -66,11 +137,11 @@
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-slate-50 border-b border-slate-200/60 text-slate-400 text-xs font-bold uppercase tracking-wider">
                             <tr>
-                                <th class="py-4 px-6">Procedure Code</th>
-                                <th class="py-4 px-6">Target State</th>
-                                <th class="py-4 px-6">Pricing Timeline</th>
-                                <th class="py-4 px-6">Allowance Rate</th>
-                                <th class="py-4 px-6">Originating Dataset Asset File</th>
+                                <th class="py-4 px-6 text-left">Procedure Code</th>
+                                <th class="py-4 px-6 text-left">Target State</th>
+                                <th class="py-4 px-6 text-left">Pricing Timeline</th>
+                                <th class="py-4 px-6 text-left">Allowance Rate</th>
+                                <th class="py-4 px-6 text-left">Originating Dataset Asset File</th>
                             </tr>
                         </thead>
                         <tbody id="recordsTableBody" class="divide-y divide-slate-100 text-sm font-medium text-slate-600">
@@ -88,12 +159,15 @@
 
         <!-- VIEW BLOCK B: ZIP PROCESSOR -->
         <div id="viewZipProcessor" class="space-y-8 hidden">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-4">
+            <div class="bg-amber-50 p-6 rounded-2xl border border-amber-100 shadow-xs flex flex-wrap items-center justify-between gap-4">
                 <div class="space-y-1 flex-1 min-w-[300px]">
                     <h4 class="font-bold text-slate-900 text-sm tracking-tight">External Data Asset Ingestion Stream</h4>
                     <input id="zipExcelUrlInput" type="text" placeholder="https://example.gov/medicare/zipcode-records.xlsx" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium shadow-2xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all mt-2">
                 </div>
-                <button id="runZipPipelineBtn" onclick="triggerZipSpreadsheetImport()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl font-semibold tracking-wide shadow-sm hover:shadow-md active:scale-[0.98] transition-all text-sm cursor-pointer self-end h-[44px]">Fetch & Load Data</button>
+                <button id="runZipPipelineBtn" onclick="triggerZipSpreadsheetImport()" 
+        class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-3 rounded-xl font-semibold tracking-wide shadow-sm hover:shadow-md active:scale-[0.98] transition-all text-sm cursor-pointer self-end h-[44px]">
+        Fetch & Load Data
+    </button>
             </div>
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
                 <div class="p-6 border-b border-slate-100 bg-slate-50/40">
@@ -124,12 +198,12 @@
 
         <!-- VIEW BLOCK C: ANESTHESIA PROCESSOR -->
         <div id="viewAnesthesiaProcessor" class="space-y-8 hidden">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-4">
+            <div class="bg-indigo-100 p-6 rounded-2xl border border-indigo-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
                 <div class="space-y-1 flex-1 min-w-[300px]">
                     <h4 class="font-bold text-slate-900 text-sm tracking-tight">Anesthesia Asset Ingestion</h4>
                     <input id="anesthesiaUrlInput" type="text" placeholder="https://example.gov/anesthesia-records.xlsx" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium shadow-2xs placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all mt-2">
                 </div>
-                <button id="runAnesthesiaBtn" onclick="triggerAnesthesiaImport()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl font-semibold tracking-wide shadow-sm hover:shadow-md active:scale-[0.98] transition-all text-sm cursor-pointer self-end h-[44px]">Import Anesthesia</button>
+                <button id="runAnesthesiaBtn" onclick="triggerAnesthesiaImport()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl font-semibold tracking-wide shadow-sm hover:shadow-md active:scale-[0.98] transition-all text-sm cursor-pointer self-end h-[44px]">Import Anesthesia</button>
             </div>
             <!-- TABLE VIEW FOR ANESTHESIA DATA -->
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
@@ -161,43 +235,25 @@
     </main>
 
     <script>
-        function switchViewTab(activeMode) {
-            const tabFeeBtn = document.getElementById("tabFeeBtn");
-            const tabZipBtn = document.getElementById("tabZipBtn");
-            const tabAnesthesiaBtn = document.getElementById("tabAnesthesiaBtn");
-            
-            const viewFeePipeline = document.getElementById("viewFeePipeline");
-            const viewZipProcessor = document.getElementById("viewZipProcessor");
-            const viewAnesthesiaProcessor = document.getElementById("viewAnesthesiaProcessor");
-            const feePipelineControls = document.getElementById("feePipelineControls");
-            const alertBox = document.getElementById("statusAlert");
+        function switchViewTab(viewType) {
+            const tabs = {
+                fee: { el: document.getElementById('tabFeeBtn'), activeClass: "bg-blue-500 text-white" },
+                zip: { el: document.getElementById('tabZipBtn'), activeClass: "bg-amber-500 text-white" },
+                anesthesia: { el: document.getElementById('tabAnesthesiaBtn'), activeClass: "bg-purple-500 text-white" }
+            };
 
-            alertBox.className = "hidden";
-            alertBox.innerHTML = "";
+            Object.keys(tabs).forEach(key => {
+                tabs[key].el.className = "px-6 py-2.5 text-sm font-semibold text-slate-400 hover:text-white transition-all rounded-xl";
+            });
 
-            // Reset all tabs
-            [tabFeeBtn, tabZipBtn, tabAnesthesiaBtn].forEach(t => t.className = "pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-all cursor-pointer");
-            
-            // Hide all views
-            [viewFeePipeline, viewZipProcessor, viewAnesthesiaProcessor].forEach(v => v.className = "space-y-8 hidden");
+            // Apply the active color
+            tabs[viewType].el.className = `px-6 py-2.5 text-sm font-bold text-white shadow-md transition-all rounded-xl ${tabs[viewType].activeClass}`;
 
-            if (activeMode === 'fee') {
-                tabFeeBtn.className = "pb-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 transition-all cursor-pointer";
-                viewFeePipeline.className = "space-y-8 block";
-                feePipelineControls.className = "flex items-center gap-3";
-            } else if (activeMode === 'zip') {
-                tabZipBtn.className = "pb-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 transition-all cursor-pointer";
-                viewZipProcessor.className = "space-y-8 block";
-                feePipelineControls.className = "hidden";
-                renderZipOutputGrid();
-            } else if (activeMode === 'anesthesia') {
-                tabAnesthesiaBtn.className = "pb-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 transition-all cursor-pointer";
-                viewAnesthesiaProcessor.className = "space-y-8 block";
-                feePipelineControls.className = "hidden";
-                renderAnesthesiaOutputGrid(); // Auto load on switch
-            }
+            // Show/Hide views (as before)
+            document.getElementById('viewFeePipeline').classList.toggle('hidden', viewType !== 'fee');
+            document.getElementById('viewZipProcessor').classList.toggle('hidden', viewType !== 'zip');
+            document.getElementById('viewAnesthesiaProcessor').classList.toggle('hidden', viewType !== 'anesthesia');
         }
-
         async function triggerCachedPipelineRun() {
             const btn = document.getElementById("runPipelineBtn");
             const alertBox = document.getElementById("statusAlert");

@@ -8,6 +8,7 @@ import requests
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import pymysql
+from flask_mail import Mail, Message
 
 # Setup logging architecture
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -15,16 +16,37 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 app = Flask(__name__)
 CORS(app)
 
+# --- EMAIL CONFIGURATION ---
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'srikrishnaalluguri@gmail.com'  # REPLACE WITH YOUR EMAIL
+app.config['MAIL_PASSWORD'] = 'szhd yaxz fxwm vlsv'     # REPLACE WITH YOUR APP PASSWORD
+mail = Mail(app)
+
+def send_ingestion_summary(user_email, process_name, count):
+    """Safely sends operation summary via email."""
+    try:
+        msg = Message(
+            subject=f"System Notification: {process_name} Complete",
+            sender=app.config['MAIL_USERNAME'],
+            recipients=[user_email]
+        )
+        msg.body = f"The operation '{process_name}' has finished successfully.\n\nTotal records processed: {count}."
+        mail.send(msg)
+        logging.info(f"Summary email sent to {user_email}")
+    except Exception as e:
+        logging.error(f"Failed to send email: {e}")
+
 # --- DATABASE CONFIGURATION ---
 DB_CONFIG = {
-    "host": "127.0.0.1",  # Updated to 127.0.0.1 for stability
+    "host": "127.0.0.1",
     "port": 3306,
     "user": "root",
     "password": "MySQL@123",
     "database": "medical_fee_db",
     "cursorclass": pymysql.cursors.DictCursor
 }
-
 
 # --- DIRECTORY CONFIGURATION ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -34,21 +56,20 @@ EXTRACT_DIR = os.path.join(BASE_DIR, 'extracted')
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 os.makedirs(EXTRACT_DIR, exist_ok=True)
 
-
 # =====================================================================
-# --- CORE DME WORKFLOW ROUTES (ORIGINAL CODE) ------------------------
+# --- CORE DME WORKFLOW ROUTES ---
 # =====================================================================
 
 @app.route('/', methods=['GET'])
 def render_dashboard():
     return render_template('index.html')
 
-
 @app.route('/api/pipeline/run', methods=['POST'])
 def execute_ingestion():
     payload = request.json or {}
     target_year = str(payload.get('year', '')).strip()
     target_quarter = str(payload.get('quarter', '')).strip().upper()
+    user_email = payload.get('email', 'srikrishnaalluguri@gmail.com') # Captured from frontend
     
     if not target_year or not target_quarter:
         return jsonify({"status": "error", "message": "Parameters 'year' and 'quarter' are required."}), 400
@@ -63,12 +84,10 @@ def execute_ingestion():
     ]
     
     target_folder = next((f for f in possible_folders if os.path.exists(f)), None)
-    if not target_folder:
-        return jsonify({"status": "error", "message": "Data directory not found."}), 404
+    if not target_folder: return jsonify({"status": "error", "message": "Data directory not found."}), 404
 
     csv_files = [os.path.join(root, f) for root, _, files in os.walk(target_folder) for f in files if f.lower().endswith('.csv')]
-    if not csv_files:
-        return jsonify({"status": "error", "message": "No CSV file found."}), 404
+    if not csv_files: return jsonify({"status": "error", "message": "No CSV file found."}), 404
     
     target_csv = csv_files[0]
     filename = os.path.basename(target_csv)
@@ -91,12 +110,13 @@ def execute_ingestion():
             cursor.execute("TRUNCATE TABLE pipeline_status;")
             cursor.execute("INSERT INTO pipeline_status (status, total_records_processed, error_message) VALUES ('SUCCESS', %s, 'Processed.')", (len(parsed_records),))
             conn.commit()
+        
+        send_ingestion_summary(user_email, "DME Fee Flow Pipeline", len(parsed_records))
         return jsonify({"status": "success", "inserted_rows": len(parsed_records)}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
     finally:
         if 'conn' in locals() and conn.open: conn.close()
-
 
 @app.route('/api/pipeline/records', methods=['GET'])
 def fetch_grid_data():
@@ -111,15 +131,15 @@ def fetch_grid_data():
     finally:
         if 'conn' in locals() and conn.open: conn.close()
 
-
 # =====================================================================
-# --- ZIP CODES EXTENSION (ORIGINAL CODE) -----------------------------
+# --- ZIP CODES EXTENSION ---
 # =====================================================================
 
 @app.route('/api/zip-codes/import', methods=['POST'])
 def import_zip_codes():
     payload = request.json or {}
     url = payload.get('url', '').strip()
+    user_email = payload.get('email', 'srikrishnaalluguri@gmail.com')
     if not url: return jsonify({"status": "error", "message": "URL required."}), 400
     try:
         response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
@@ -140,12 +160,13 @@ def import_zip_codes():
             cursor.execute("TRUNCATE TABLE dme_zip_fee_flow;")
             cursor.executemany("INSERT INTO dme_zip_fee_flow (zip_fee_year, zip_code, mdcr_carrier_id, mdcr_fee_schd_id) VALUES (%s, %s, %s, %s)", parsed_records)
             conn.commit()
+        
+        send_ingestion_summary(user_email, "Zip Code Import", len(parsed_records))
         return jsonify({"status": "success", "inserted_rows": len(parsed_records)}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
     finally:
         if 'conn' in locals() and conn.open: conn.close()
-
 
 @app.route('/api/zip-codes/records', methods=['GET'])
 def fetch_zip_grid_data():
@@ -160,24 +181,19 @@ def fetch_zip_grid_data():
     finally:
         if 'conn' in locals() and conn.open: conn.close()
 
-
 # =====================================================================
-# --- ANESTHESIA EXTENSION (UPDATED WITH DEBUGGING) -------------------
+# --- ANESTHESIA EXTENSION ---
 # =====================================================================
 
 @app.route('/api/anesthesia/import', methods=['POST'])
 def import_anesthesia():
     payload = request.json or {}
     url = payload.get('url', '').strip()
+    user_email = payload.get('email', 'srikrishnaalluguri@gmail.com')
     if not url: return jsonify({"status": "error", "message": "URL is required."}), 400
     
     try:
-        # Debugging step: Check connection
         conn = pymysql.connect(**DB_CONFIG)
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT DATABASE();")
-            print(f"DEBUG: Flask is connected to database: {cursor.fetchone()}")
-        
         response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=30)
         response.raise_for_status()
         excel_data = response.content
@@ -191,12 +207,11 @@ def import_anesthesia():
         df.columns = df.columns.str.strip()
         target_col = next((c for c in df.columns if 'National Anes' in c), None)
         if not target_col:
-            return jsonify({"status": "error", "message": f"Could not find conversion factor column. Available: {df.columns.tolist()}"}), 400
+            return jsonify({"status": "error", "message": "Could not find factor column."}), 400
 
         df = df.rename(columns={'Contractor': 'mdcr_carrier_id', 'Locality': 'mdcr_fee_schd_id', target_col: 'conv_factor_amt'})
         df['pricing_year'] = 2026
         df = df[['pricing_year', 'mdcr_carrier_id', 'mdcr_fee_schd_id', 'conv_factor_amt']].dropna()
-        
         records = df.to_dict('records')
         
         with conn.cursor() as cursor:
@@ -206,13 +221,13 @@ def import_anesthesia():
                 cursor.execute(sql, (row['pricing_year'], row['mdcr_carrier_id'], row['mdcr_fee_schd_id'], row['conv_factor_amt']))
             conn.commit()
             
+        send_ingestion_summary(user_email, "Anesthesia Import", len(records))
         return jsonify({"status": "success", "inserted_rows": len(records)}), 200
     except Exception as e:
         logging.error(f"Anesthesia import error: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
     finally:
         if 'conn' in locals() and conn.open: conn.close()
-
 
 @app.route('/api/anesthesia/records', methods=['GET'])
 def fetch_anesthesia_records():
@@ -226,7 +241,6 @@ def fetch_anesthesia_records():
         return jsonify({"status": "error", "message": str(e)}), 500
     finally:
         if 'conn' in locals() and conn.open: conn.close()
-
 
 if __name__ == '__main__':
     logging.info("Initializing DME Fee Flow Platform Engine Core...")
